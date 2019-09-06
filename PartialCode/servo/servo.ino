@@ -1,20 +1,23 @@
-#include <Servo.h> // menyertakan library servo ke dalam program 
-Servo myservo;     // variable untuk menyimpan posisi data
-int pos = 00;   
-         
-void setup(){ 
- myservo.attach(3); //sinyal data kabel motor servo dikonekan di pin 3 Arduino
-} 
- 
+// Include the Servo library 
+#include <Servo.h> 
+// Declare the Servo pin 
+int servoPin = 3; 
+// Create a servo object 
+Servo Servo1; 
+void setup() { 
+   // We need to attach the servo to the used pin number 
+   Servo1.attach(servoPin); 
+}
 void loop(){ 
- for(pos = 00; pos < 180; pos += 1)  //fungsi perulangan yang akan dijadikan PWM dengan kenaikan 1
- {
-  myservo.write(pos); //prosedur penulisan data PWM ke motor servo
-  delay(15); //waktu tunda 15 ms                 
- } 
- for(pos = 180; pos>=1; pos-=1)  //fungsi perulangan yang akan dijadikan PWM dengan penurunan 1
- {                              
-  myservo.write(pos);                 
-  delay(15);                        
- }
+   // Make servo go to 0 degrees 
+   Servo1.write(0); 
+   delay(1000); 
+   // Make servo go to 90 degrees 
+   Servo1.write(90);  
+   delay(1000);
+   // Make servo go to 180 degrees 
+   Servo1.write(180); 
+   delay(1000);
+   Servo1.write(90);
+   delay(1000);
 }

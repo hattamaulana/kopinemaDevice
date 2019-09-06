@@ -32,3 +32,4 @@ Machine send data and user smartphone receive and send data.
 - [Servo](https://www.nyebarilmu.com/cara-mengakses-motor-servo-menggunakan-arduino/)
 - [Relay 2 Channel](https://www.instructables.com/id/Arduino-2-Channel-Relay/)
 - [ESP8266](https://medium.com/@cgrant/using-the-esp8266-wifi-module-with-arduino-uno-publishing-to-thingspeak-99fc77122e82)
+- [Arduino - ESP8266](https://www.instructables.com/id/Firebase-Integrate-With-ESP8266/)

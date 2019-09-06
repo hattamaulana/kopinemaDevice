@@ -1,6 +1,6 @@
 byte indikator = 13;
 byte sensorInt = 0;
-byte flowsensor = 2;
+byte flowsensor = A0;
 
 float KONSTANTA = 4.5;
 
@@ -28,10 +28,10 @@ void setup(){
 }
 
 void loop(){
-    if ((milis() - oldtime) > 1000){
+    if ((millis() - oldtime) > 1000){
         detachInterrupt(sensorInt);
-        debit = ((1000.0 / (millis() - oldTime)) * pulseCount) / konstanta;
-        oldTime = millis();
+        debit = ((1000.0 / (millis() - oldtime)) * pulseCount) / KONSTANTA;
+        oldtime = millis();
         flowmlt = (debit / 60) * 1000;
         totalmlt += flowmlt;
         
