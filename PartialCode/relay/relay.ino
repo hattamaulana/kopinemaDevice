@@ -1,14 +1,14 @@
-int RELAY1 = A0;
-int RELAY2 = A1;
+int rHeater = 7;
+int rPump = 8;
 int delayValue = 1000;
 
 void setup() {
   // put your setup code here, to run once:
-  pinMode(RELAY1, OUTPUT);
-  pinMode(RELAY2, OUTPUT);
+  pinMode(rHeater, OUTPUT);
+  pinMode(rPump, OUTPUT);
 
-  digitalWrite(RELAY1, HIGH);
-  digitalWrite(RELAY2, HIGH);
+  digitalWrite(rHeater, HIGH);
+  digitalWrite(rPump, HIGH);
 
   Serial.begin(9600);
 }
@@ -16,17 +16,11 @@ void setup() {
 void loop() {
   
   // put your main code here, to run repeatedly:
-  digitalWrite(RELAY1, LOW);
-  Serial.println("RELAY1 ON");
-  delay(delayValue);
+  digitalWrite(rHeater, LOW);
  
-  digitalWrite(RELAY1, HIGH);
-  Serial.println("RELAY1 OFF");
+  digitalWrite(rHeater, HIGH);
 
-  digitalWrite(RELAY2, LOW);
-  Serial.println("RELAY2 ON");
-  delay(delayValue);
+  digitalWrite(rPump, LOW);
   
-  digitalWrite(RELAY2, HIGH);
-  Serial.println("RELAY2 OFF");
+  digitalWrite(rPump, HIGH);
 }
