@@ -47,6 +47,10 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass oneWire reference to DallasTemperature library
 DallasTemperature sensors(&oneWire);
 
+int totalmilis = 0;
+int rehatDulu = 54400;
+int target = 332000;
+
 void setup() {
   Serial.begin(9600);
 
@@ -72,32 +76,37 @@ void setup() {
 
   // Clear the buffer
   display.clearDisplay(); 
-  int totalmilis;
-  int rehatDulu = 54400;
 }
 
 void loop() {
-  sensors.requestTemperatures();
-  if((int) sensors.getTempCByIndex(0) > 90){
-    screenHeatSensor();
-    pumpOn();
-    muterTest();
-    heaterOff();
-    delay(500);  
-    totalmilis += 500;
-    if (totalmilis == rehatDulu){
+  if (Serial.available()){
+    sensors.requestTemperatures();
+    if((int) sensors.getTempCByIndex(0) > 90){
+      screenHeatSensor();
+      pumpOn();
       muterTest();
+      heaterOff();
+      delay(500);  
+      totalmilis = totalmilis + 500;
+      if (totalmilis == rehatDulu){
+        muterTest();
+        pumpOff();
+        delay(30000);
+        rehatDulu += rehatDulu;        
+      } else if (totalmilis == target){
+        pumpOff();
+        Serial.flush();
+        Serial.println("done");   
+        exit(0);     
+      }
+    } else {
+      heaterOn();
       pumpOff();
-      delay(30000);
-      rehatDulu += rehatDulu;        
+      screenHeatSensor();
+      delay(1000);
+      totalmilis = totalmilis + 1000;
     }
-  } else {
-    heaterOn();
-    pumpOff();
-    screenHeatSensor();
-    delay(1000);
-    totalmilis += 1000;
-  }
+  } 
 }
 
 // Fungsi - Fungsi !
