@@ -40,6 +40,7 @@ static const unsigned char PROGMEM logo_bmp[] =
   B01111100, B11110000,
   B01110000, B01110000,
   B00000000, B00110000 };
+  
 // Create objects 
 Servo myservo; 
 OneWire oneWire(ONE_WIRE_BUS);  
@@ -47,13 +48,12 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass oneWire reference to DallasTemperature library
 DallasTemperature sensors(&oneWire);
 
-int totalmilis = 0;
-int rehatDulu = 54400;
-int target = 332000;
+unsigned int Rasio = 0, totalTime, timeMain = 0; 
+int showSomething = 0;
+boolean onProcess = false;
 
 void setup() {
   Serial.begin(9600);
-
   sensors.begin();  // Start up the library
 
   pinMode(rHeater, OUTPUT);
@@ -76,42 +76,73 @@ void setup() {
 
   // Clear the buffer
   display.clearDisplay(); 
+  screenText("DEVICE", " HIDUP...");
+  delay(3000);
 }
 
 void loop() {
-  if (Serial.available()){
+  
+  // Jika terdapat data yang dikirim melalui serial raspi
+  if (Serial.available() || onProcess){
+      showSomething += 1;
+      
+      if(Serial.available()) {
+          Rasio = (Serial.parseInt()); //*20*650)/1000;
+          Rasio = Rasio * 11;
+          Serial.println(Rasio);
+      }
+      
+    if (showSomething == 1){
+      Serial.print("Total ");
+      Serial.print(Rasio);
+      //Serial.flush();
+    } 
+    
+    // Cek panas air dalam heater
+    onProcess = true;
     sensors.requestTemperatures();
     if((int) sensors.getTempCByIndex(0) > 90){
-      screenHeatSensor();
-      pumpOn();
-      muterTest();
-      heaterOff();
-      delay(500);  
-      totalmilis = totalmilis + 500;
-      if (totalmilis == rehatDulu){
+      int temp = 0;
+      for (int i = 0; i <= Rasio; i+=9){
+        Serial.print("Log : ");
+        Serial.println(i);
+        heaterOff();
+        pumpOn();
         muterTest();
-        pumpOff();
-        delay(30000);
-        rehatDulu += rehatDulu;        
-      } else if (totalmilis == target){
-        pumpOff();
-        Serial.flush();
-        Serial.println("done");   
-        exit(0);     
+        if (temp % 4 == 0 && temp != 0){
+            stopDelay();  
+        }
+        temp++;
       }
+      pumpOff();
+      onProcess = false;
+      Serial.println("done");
+      screenText("KOPI ANDA", "SUDAH SIAP");
+      delay(5000);
     } else {
       heaterOn();
       pumpOff();
       screenHeatSensor();
-      delay(1000);
-      totalmilis = totalmilis + 1000;
+      delay(500);
+      screenText("SEDANG", "MEMANASKAN...");
     }
-  } 
+  } else {
+    screenText("MENUNGGU", "PERINTAH");
+    delay(3000);
+  }
 }
 
 // Fungsi - Fungsi !
+void Flash(int totalTimeProcess){
+  //Serial.print("Flashed: ");
+  //Serial.println(totalTimeProcess);
+  //Serial.println("Flash sudah");
+  // Nothing there
+}
+
 void screenHeatSensor(){
   sensors.requestTemperatures(); 
+  Serial.println(sensors.getTempCByIndex(0));
   display.clearDisplay();
 
   display.setTextSize(3);             // Normal 1:1 pixel scale
@@ -121,7 +152,16 @@ void screenHeatSensor(){
   display.print(F(" C"));
 
   display.display();
-  delay(2000);
+}
+
+void screenText(String firstWord, String secondWord){
+  display.clearDisplay();
+  display.setTextSize(2);             // Normal 1:1 pixel scale
+  display.setTextColor(WHITE);        // Draw white text
+  display.setCursor(0,0);             // Start at top-left corner
+  display.println(firstWord);
+  display.print(secondWord);
+  display.display();
 }
 
 void heaterOn(){
@@ -152,4 +192,9 @@ void muterTest(){
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(25);                       // waits 15ms for the servo to reach the position
   }
+}
+
+void stopDelay(){
+  pumpOff();
+  delay(30000);
 }
