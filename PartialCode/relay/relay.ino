@@ -13,14 +13,13 @@ void setup() {
   Serial.begin(9600);
 }
 
-void loop() {
-  
+void loop() { 
   // put your main code here, to run repeatedly:
   digitalWrite(rHeater, LOW);
- 
-  digitalWrite(rHeater, HIGH);
-
   digitalWrite(rPump, LOW);
-  
+  delay(5000);
+  digitalWrite(rHeater, HIGH);
   digitalWrite(rPump, HIGH);
+  delay(5000);
+
 }
