@@ -1,3 +1,4 @@
+
 //// Include the Servo library 
 //#include <Servo.h> 
 //// Declare the Servo pin 
@@ -27,7 +28,7 @@
 /* Sweep
  by BARRAGAN <http://barraganstudio.com>
  This example code is in the public domain.
-
+x`x`
  modified 8 Nov 2013
  by Scott Fitzgerald
  http://www.arduino.cc/en/Tutorial/Sweep
@@ -55,5 +56,4 @@ void loop() {
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15ms for the servo to reach the position
   }
-  
 }

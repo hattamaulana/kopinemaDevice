@@ -9,6 +9,7 @@
 
 // Define Pin
 #define ONE_WIRE_BUS 2
+byte flowSensor = 4;
 int rHeater = 7;
 int rPump = 8;
 int servoPin = A0; 
@@ -48,9 +49,19 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass oneWire reference to DallasTemperature library
 DallasTemperature sensors(&oneWire);
 
+// Variable
 unsigned int Rasio = 0, totalTime, timeMain = 0; 
 int showSomething = 0;
 boolean onProcess = false;
+
+byte indikator = 13;
+byte sensorInt = 0;
+float KONSTANTA = 4.5; //flow-meter const
+volatile byte pulseCount;
+float debit;
+unsigned int flowMlt;
+unsigned long totalMlt;
+unsigned long oldTime;
 
 void setup() {
   Serial.begin(9600);
@@ -63,6 +74,20 @@ void setup() {
   digitalWrite(rHeater, HIGH); // Offline #1 Channel at Setup
   digitalWrite(rPump, HIGH); // Offline #2 Channel at Setup
 
+  pinMode(indikator, OUTPUT);
+  digitalWrite(indikator, HIGH);
+
+  pinMode(indikator, INPUT);
+  digitalWrite(indikator, HIGH);
+
+  pulseCount = 0;
+  debit = 0.0;
+  flowMlt = 0;
+  totalMlt = 0;
+  oldTime = 0;
+
+  attachInterrupt(sensorInt, pulseCounter, FALLING);
+  
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
     Serial.println(F("SSD1306 allocation failed"));
@@ -84,41 +109,41 @@ void loop() {
   
   // Jika terdapat data yang dikirim melalui serial raspi
   if (Serial.available() || onProcess){
-      showSomething += 1;
-      
-      if(Serial.available()) {
-          Rasio = (Serial.parseInt()); //*20*650)/1000;
-          Rasio = Rasio * 11;
-          Serial.println(Rasio);
+    
+    if(Serial.available()) {
+      Rasio = (Serial.parseInt()); //*20*650)/1000;
+      Rasio = Rasio * 20;
+      Serial.print("VolTarget: ")
+      Serial.println(Rasio);
       }
-      
-    if (showSomething == 1){
-      Serial.print("Total ");
-      Serial.print(Rasio);
-      //Serial.flush();
-    } 
     
     // Cek panas air dalam heater
     onProcess = true;
+    Serial.print("Temp: ");
+    Serial.println(sensors.requestTemperatures());
+    Serial.println("Progress: heating");
     sensors.requestTemperatures();
     if((int) sensors.getTempCByIndex(0) > 90){
-      int temp = 0;
-      for (int i = 0; i <= Rasio; i+=9){
-        Serial.print("Log : ");
-        Serial.println(i);
-        heaterOff();
-        pumpOn();
-        muterTest();
-        if (temp % 4 == 0 && temp != 0){
-            stopDelay();  
+      if((millis() - oldTime) > 1000){
+        Serial.println("Progress: pouring");
+        detachInterrupt(sensorInt);
+        debit = ((1000.0 / (millis() - oldTime)) * pulseCount) / KONSTANTA;
+        oldTime = millis();
+        flowMlt = (debit / 60) * 1000;
+        totalMlt = totalMlt + flowMlt;
+        unsigned int frac;
+        Serial.print("Vol: "); Serial.println(totalMlt);
+        pulseCount = 0;
+        attachInterrupt(sensorInt, pulseCounter, FALLING);
+        if(totalMlt > Rasio){
+          pumpOff();
+          onProcess = false;
+          Serial.print("Status: ");
+          Serial.println("done");
+          screenText("KOPI ANDA", "SUDAH SIAP");
+          delay(5000);
         }
-        temp++;
       }
-      pumpOff();
-      onProcess = false;
-      Serial.println("done");
-      screenText("KOPI ANDA", "SUDAH SIAP");
-      delay(5000);
     } else {
       heaterOn();
       pumpOff();
@@ -133,16 +158,12 @@ void loop() {
 }
 
 // Fungsi - Fungsi !
-void Flash(int totalTimeProcess){
-  //Serial.print("Flashed: ");
-  //Serial.println(totalTimeProcess);
-  //Serial.println("Flash sudah");
-  // Nothing there
+void pulseCounter(){
+  pulseCount++;
 }
 
 void screenHeatSensor(){
-  sensors.requestTemperatures(); 
-  Serial.println(sensors.getTempCByIndex(0));
+  sensors.requestTemperatures();
   display.clearDisplay();
 
   display.setTextSize(3);             // Normal 1:1 pixel scale
